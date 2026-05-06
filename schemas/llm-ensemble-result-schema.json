@@ -1,0 +1,42 @@
+{
+  "question_id": "string",
+  "timestamp": "string (ISO 8601)",
+
+  "workers": [
+    {
+      "worker_id": "string",
+      "model": "string",
+      "answer": "string",
+      "confidence": "float (0.0 - 1.0)"
+    }
+  ],
+
+  "arbiter": {
+    "final_answer": "string",
+    "strategy": "string",
+    "confidence": "float (0.0 - 1.0)",
+    "reasoning": "string"
+  },
+
+  "evaluation": {
+    "correct": "boolean",
+    "agreement_score": "float (0.0 - 1.0)",
+    "disagreement_score": "float (0.0 - 1.0)",
+    "consensus": "boolean",
+
+    "model_errors": {
+      "worker_1": "boolean",
+      "worker_2": "boolean",
+      "worker_3": "boolean"
+    }
+  },
+
+  "ground_truth": "string",
+  "metrics": {
+    "latency_ms": "integer",
+    "tokens_total": "integer",
+    "cost_estimate": "float"
+  },
+
+  "notes": "string"
+}
