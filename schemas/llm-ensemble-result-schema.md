@@ -53,7 +53,7 @@
 
 # JSON SCHEMA Пояснення
 
-## Top-level fields
+# Top-level fields
 
 ### schema_version [string]
 Версія цієї схеми результату (для майбутньої сумісності).
@@ -67,7 +67,7 @@
 ### timestamp [string]
 Час створення результату (рекомендовано ISO 8601).
 
-## workers [array]
+# workers [array]
 Масив відповідей від усіх worker-моделей.
 
 ### worker_id [string]
@@ -82,7 +82,7 @@
 ### confidence [float]
 Впевненість моделі у відповіді (0.0 — 1.0).
 
-## arbiter [object]
+# arbiter [object]
 Результат роботи Арбітра.
 
 ### final_answer [string]
@@ -106,7 +106,7 @@
 ### confidence_distribution [object]
 Розподіл впевненості (ключ = worker_id).
 
-## evaluation [object]
+# evaluation [object]
 Оцінка якості (для evaluation mode).
 
 ### correct [boolean]
@@ -127,7 +127,7 @@
 ## ground_truth [string | null]
 Еталонна відповідь (null якщо немає).
 
-## metrics [object]
+# metrics [object]
 Технічні метрики виконання.
 
 ### latency_ms [integer]
