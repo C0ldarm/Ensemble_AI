@@ -2,147 +2,137 @@
 
 ```json
 {
-  "question_id": "string",
-  "timestamp": "string (ISO 8601)",
+  "schema_version": "string",
+  "request_id": "string",
+  "original_query": "string",
+  "timestamp": "string",
 
   "workers": [
     {
       "worker_id": "string",
       "model": "string",
       "answer": "string",
-      "confidence": "float (0.0 - 1.0)"
+      "confidence": "float"
     }
   ],
 
   "arbiter": {
     "final_answer": "string",
     "strategy": "string",
-    "confidence": "float (0.0 - 1.0)",
-    "reasoning": "string"
+    "confidence": "float",
+    "reasoning": "string",
+    "selected_from": ["string"],
+    "rejection_reasons": {
+      "worker_id": "string"
+    },
+    "confidence_distribution": {
+      "worker_id": "float"
+    }
   },
 
   "evaluation": {
     "correct": "boolean",
-    "agreement_score": "float (0.0 - 1.0)",
-    "disagreement_score": "float (0.0 - 1.0)",
+    "agreement_score": "float",
+    "disagreement_score": "float",
     "consensus": "boolean",
-
     "model_errors": {
-      "worker_1": "boolean",
-      "worker_2": "boolean",
-      "worker_3": "boolean"
+      "worker_id": "boolean"
     }
   },
 
-  "ground_truth": "string",
+  "ground_truth": "string | null",
+
   "metrics": {
     "latency_ms": "integer",
-    "tokens_total": "integer",
-    "cost_estimate": "float"
+    "tokens_total": "integer"
   },
 
-  "notes": "string"
+  "notes": "string | null"
 }
 ```
 
 # JSON SCHEMA Пояснення
 
-## question_id [string]
-Унікальний ідентифікатор запитання в системі.  
-Використовується для трекінгу експериментів і порівняння результатів.
+## schema_version [string]
+Версія цієї схеми результату (для майбутньої сумісності).
 
-## timestamp [string (ISO 8601)]
-Час запуску експерименту у форматі ISO 8601.  
-Наприклад: 2026-05-06T21:30:00Z
+## request_id [string]
+Унікальний ідентифікатор запиту.
+
+## original_query [string]
+Оригінальний запит користувача.
+
+## timestamp [string]
+Час створення результату (рекомендовано ISO 8601).
 
 ## workers [array]
-
-Список всіх моделей, які брали участь у відповіді.
+Масив відповідей від усіх worker-моделей.
 
 ### worker_id [string]
-Унікальний ідентифікатор конкретного інстансу моделі.  
-Дозволяє розрізняти однакові моделі, запущені паралельно.
+Унікальний ідентифікатор worker-а (має бути унікальним).
 
 ### model [string]
-Назва або тип моделі.
-
-Приклади:
-- qwen2.5-7b  
-- llama3-8b  
-- mistral-7b  
+Назва моделі (наприклад: `qwen2.5-32b-instruct`).
 
 ### answer [string]
-Відповідь, яку згенерувала модель.
+Повна відповідь, згенерована моделлю.
 
-### confidence [float (0.0 – 1.0)]
-Впевненість моделі у відповіді (0.0 – 1.0)
+### confidence [float]
+Впевненість моделі у відповіді (0.0 — 1.0).
 
 ## arbiter [object]
-
-Компонент, який агрегує відповіді workers.
+Результат роботи Арбітра.
 
 ### final_answer [string]
-Фінальна відповідь системи після агрегації.
+Фінальна відповідь, яку бачить користувач.
 
 ### strategy [string]
-Метод прийняття рішення:
+Стратегія арбітра (majority, best-confidence, synthesis тощо).
 
-- majority — більшість  
-- consensus — повна згода  
-- conflict — конфлікт  
-- weighted — зважене рішення  
-
-### confidence [float (0.0 – 1.0)]
-Впевненість арбітра у фінальній відповіді.
+### confidence [float]
+Загальна впевненість арбітра.
 
 ### reasoning [string]
-Пояснення вибору відповіді.
+Пояснення арбітра, чому саме така фінальна відповідь.
+
+### selected_from [array]
+Список worker_id, які були використані для фінальної відповіді.
+
+### rejection_reasons [object]
+Причини відхилення worker-ів (ключ = worker_id).
+
+### confidence_distribution [object]
+Розподіл впевненості (ключ = worker_id).
 
 ## evaluation [object]
-
-Метрики якості системи.
+Оцінка якості (для evaluation mode).
 
 ### correct [boolean]
-Чи правильна фінальна відповідь (якщо є ground truth).
+Чи співпадає з ground_truth.
 
-### agreement_score [float (0.0 – 1.0)]
-Рівень згоди між моделями.
+### agreement_score [float]
+Рівень згоди між worker-моделями.
 
-1.0 = повна згода  
-0.0 = повна розбіжність  
-
-### disagreement_score [float (0.0 – 1.0)]
-Рівень розбіжності між моделями.
+### disagreement_score [float]
+Рівень розбіжності між worker-моделями.
 
 ### consensus [boolean]
-Чи є домінуюча спільна відповідь.
+Чи досягнуто консенсусу.
 
 ### model_errors [object]
+Позначки помилок (ключ = worker_id).
 
-Позначення помилок моделей.
-
-Приклад:
-worker_1: true  
-worker_2: false  
-
-true = помилка  
-false = правильно
-
-## ground_truth [string]
-Правильна відповідь (для оцінки системи).
+## ground_truth [string | null]
+Еталонна відповідь (null якщо немає).
 
 ## metrics [object]
-
-Технічні метрики виконання.
+Технічні метрики.
 
 ### latency_ms [integer]
-Час виконання запиту.
+Загальний час виконання.
 
 ### tokens_total [integer]
 Загальна кількість токенів.
 
-### cost_estimate [float]
-Оцінка ресурсів (опціонально).
-
-## notes [string]
-Додаткові спостереження або коментарі.
+## notes [string | null]
+Додаткові нотатки.
