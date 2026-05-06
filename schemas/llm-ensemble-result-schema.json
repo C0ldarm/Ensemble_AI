@@ -15,7 +15,19 @@
     "final_answer": "string",
     "strategy": "string",
     "confidence": "float (0.0 - 1.0)",
-    "reasoning": "string"
+    "reasoning": "string",
+
+    "selected_from": [
+      "string (worker_id)"
+    ],
+
+    "rejection_reasons": {
+      "worker_id": "string (reason)"
+    },
+
+    "confidence_distribution": {
+      "worker_id": "float (0.0 - 1.0)"
+    }
   },
 
   "evaluation": {
@@ -25,13 +37,12 @@
     "consensus": "boolean",
 
     "model_errors": {
-      "worker_1": "boolean",
-      "worker_2": "boolean",
-      "worker_3": "boolean"
+      "worker_id": "boolean"
     }
   },
 
   "ground_truth": "string",
+
   "metrics": {
     "latency_ms": "integer",
     "tokens_total": "integer",
