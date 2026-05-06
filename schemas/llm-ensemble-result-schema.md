@@ -67,6 +67,9 @@
 ### timestamp [string]
 Час створення результату (рекомендовано ISO 8601).
 
+
+
+
 # workers [array]
 Масив відповідей від усіх worker-моделей.
 
@@ -81,6 +84,9 @@
 
 ### confidence [float]
 Впевненість моделі у відповіді (0.0 — 1.0).
+
+
+
 
 # arbiter [object]
 Результат роботи Арбітра.
@@ -106,6 +112,9 @@
 ### confidence_distribution [object]
 Розподіл впевненості (ключ = worker_id).
 
+
+
+
 # evaluation [object]
 Оцінка якості (для evaluation mode).
 
@@ -126,6 +135,9 @@
 
 ## ground_truth [string | null]
 Еталонна відповідь (null якщо немає).
+
+
+
 
 # metrics [object]
 Технічні метрики виконання.
