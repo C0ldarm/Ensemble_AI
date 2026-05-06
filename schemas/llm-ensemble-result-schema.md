@@ -1,6 +1,6 @@
 # JSON Result Schema for LLM Ensemble
 
-[{
+{
   "question_id": null,
   "timestamp": null,
 
@@ -25,7 +25,6 @@
     "agreement_score": null,
     "disagreement_score": null,
     "consensus": null,
-
     "model_errors": {
       "worker_1": null,
       "worker_2": null,
@@ -42,7 +41,7 @@
   },
 
   "notes": null
-}]
+}
 
 # JSON SCHEMA Пояснення
 
