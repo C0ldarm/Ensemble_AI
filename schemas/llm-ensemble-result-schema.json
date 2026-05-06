@@ -1,53 +1,48 @@
 {
-  "question_id": "string",
-  "timestamp": "string (ISO 8601)",
+  "schema_version": "string",
+  "request_id": "string",
+  "original_query": "string",
+  "timestamp": "string",
 
   "workers": [
     {
       "worker_id": "string",
       "model": "string",
       "answer": "string",
-      "confidence": "float (0.0 - 1.0)"
+      "confidence": "float"
     }
   ],
 
   "arbiter": {
     "final_answer": "string",
     "strategy": "string",
-    "confidence": "float (0.0 - 1.0)",
+    "confidence": "float",
     "reasoning": "string",
-
-    "selected_from": [
-      "string (worker_id)"
-    ],
-
+    "selected_from": ["string"],
     "rejection_reasons": {
-      "worker_id": "string (reason)"
+      "worker_id": "string"
     },
-
     "confidence_distribution": {
-      "worker_id": "float (0.0 - 1.0)"
+      "worker_id": "float"
     }
   },
 
   "evaluation": {
     "correct": "boolean",
-    "agreement_score": "float (0.0 - 1.0)",
-    "disagreement_score": "float (0.0 - 1.0)",
+    "agreement_score": "float",
+    "disagreement_score": "float",
     "consensus": "boolean",
-
     "model_errors": {
       "worker_id": "boolean"
     }
   },
 
-  "ground_truth": "string",
+  "ground_truth": "string | null",
 
   "metrics": {
     "latency_ms": "integer",
-    "tokens_total": "integer",
-    "cost_estimate": "float"
+    "tokens_total": "integer"
   },
 
-  "notes": "string"
+  "notes": "string | null"
 }
