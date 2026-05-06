@@ -53,16 +53,18 @@
 
 # JSON SCHEMA Пояснення
 
-## schema_version [string]
+## Top-level fields
+
+### schema_version [string]
 Версія цієї схеми результату (для майбутньої сумісності).
 
-## request_id [string]
+### request_id [string]
 Унікальний ідентифікатор запиту.
 
-## original_query [string]
+### original_query [string]
 Оригінальний запит користувача.
 
-## timestamp [string]
+### timestamp [string]
 Час створення результату (рекомендовано ISO 8601).
 
 ## workers [array]
@@ -126,7 +128,7 @@
 Еталонна відповідь (null якщо немає).
 
 ## metrics [object]
-Технічні метрики.
+Технічні метрики виконання.
 
 ### latency_ms [integer]
 Загальний час виконання.
