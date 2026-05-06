@@ -1,55 +1,57 @@
 # JSON Result Schema for LLM Ensemble
 
+```json
 {
-  "question_id": null,
-  "timestamp": null,
+  "question_id": "string",
+  "timestamp": "string (ISO 8601)",
 
   "workers": [
     {
-      "worker_id": null,
-      "model": null,
-      "answer": null,
-      "confidence": null
+      "worker_id": "string",
+      "model": "string",
+      "answer": "string",
+      "confidence": "float (0.0 - 1.0)"
     }
   ],
 
   "arbiter": {
-    "final_answer": null,
-    "strategy": null,
-    "confidence": null,
-    "reasoning": null
+    "final_answer": "string",
+    "strategy": "string",
+    "confidence": "float (0.0 - 1.0)",
+    "reasoning": "string"
   },
 
   "evaluation": {
-    "correct": null,
-    "agreement_score": null,
-    "disagreement_score": null,
-    "consensus": null,
+    "correct": "boolean",
+    "agreement_score": "float (0.0 - 1.0)",
+    "disagreement_score": "float (0.0 - 1.0)",
+    "consensus": "boolean",
+
     "model_errors": {
-      "worker_1": null,
-      "worker_2": null,
-      "worker_3": null
+      "worker_1": "boolean",
+      "worker_2": "boolean",
+      "worker_3": "boolean"
     }
   },
 
-  "ground_truth": null,
-
+  "ground_truth": "string",
   "metrics": {
-    "latency_ms": null,
-    "tokens_total": null,
-    "cost_estimate": null
+    "latency_ms": "integer",
+    "tokens_total": "integer",
+    "cost_estimate": "float"
   },
 
-  "notes": null
+  "notes": "string"
 }
+```
 
 # JSON SCHEMA Пояснення
 
-## question_id [string | null]
+## question_id [string]
 Унікальний ідентифікатор запитання в системі.  
 Використовується для трекінгу експериментів і порівняння результатів.
 
-## timestamp [string | null]
+## timestamp [string (ISO 8601)]
 Час запуску експерименту у форматі ISO 8601.  
 Наприклад: 2026-05-06T21:30:00Z
 
@@ -57,11 +59,11 @@
 
 Список всіх моделей, які брали участь у відповіді.
 
-### worker_id [string | null]
+### worker_id [string]
 Унікальний ідентифікатор конкретного інстансу моделі.  
 Дозволяє розрізняти однакові моделі, запущені паралельно.
 
-### model [string | null]
+### model [string]
 Назва або тип моделі.
 
 Приклади:
@@ -69,20 +71,20 @@
 - llama3-8b  
 - mistral-7b  
 
-### answer [string | null]
+### answer [string]
 Відповідь, яку згенерувала модель.
 
-### confidence [float | null]
+### confidence [float (0.0 – 1.0)]
 Впевненість моделі у відповіді (0.0 – 1.0)
 
 ## arbiter [object]
 
 Компонент, який агрегує відповіді workers.
 
-### final_answer [string | null]
+### final_answer [string]
 Фінальна відповідь системи після агрегації.
 
-### strategy [string | null]
+### strategy [string]
 Метод прийняття рішення:
 
 - majority — більшість  
@@ -90,29 +92,29 @@
 - conflict — конфлікт  
 - weighted — зважене рішення  
 
-### confidence [float | null]
+### confidence [float (0.0 – 1.0)]
 Впевненість арбітра у фінальній відповіді.
 
-### reasoning [string | null]
+### reasoning [string]
 Пояснення вибору відповіді.
 
 ## evaluation [object]
 
 Метрики якості системи.
 
-### correct [boolean | null]
+### correct [boolean]
 Чи правильна фінальна відповідь (якщо є ground truth).
 
-### agreement_score [float | null]
+### agreement_score [float (0.0 – 1.0)]
 Рівень згоди між моделями.
 
 1.0 = повна згода  
 0.0 = повна розбіжність  
 
-### disagreement_score [float | null]
+### disagreement_score [float (0.0 – 1.0)]
 Рівень розбіжності між моделями.
 
-### consensus [boolean | null]
+### consensus [boolean]
 Чи є домінуюча спільна відповідь.
 
 ### model_errors [object]
@@ -126,21 +128,21 @@ worker_2: false
 true = помилка  
 false = правильно
 
-## ground_truth [string | null]
+## ground_truth [string]
 Правильна відповідь (для оцінки системи).
 
 ## metrics [object]
 
 Технічні метрики виконання.
 
-### latency_ms [number | null]
+### latency_ms [integer]
 Час виконання запиту.
 
-### tokens_total [number | null]
+### tokens_total [integer]
 Загальна кількість токенів.
 
-### cost_estimate [number | null]
+### cost_estimate [float]
 Оцінка ресурсів (опціонально).
 
-## notes [string | null]
+## notes [string]
 Додаткові спостереження або коментарі.
