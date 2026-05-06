@@ -1,6 +1,6 @@
 # JSON Result Schema for LLM Ensemble
 
-{
+[{
   "question_id": null,
   "timestamp": null,
 
@@ -42,7 +42,7 @@
   },
 
   "notes": null
-}
+}]
 
 # JSON SCHEMA Пояснення
 
