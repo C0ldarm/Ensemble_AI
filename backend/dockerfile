@@ -6,10 +6,14 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Налаштовуємо PYTHONPATH, щоб імпорти працювали правильно
+# Копіюємо весь код
+COPY . .
+
+# Налаштовуємо PYTHONPATH
 ENV PYTHONPATH=/app
 
 EXPOSE 8000
 
-# Запускаємо FastAPI (reload не потрібен в Docker, але можна додати)
+# Default CMD для FastAPI (Celery перевизначає в compose)
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+

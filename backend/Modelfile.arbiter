@@ -1,0 +1,10 @@
+FROM qwen2.5:14b
+
+# Кількість шарів на GPU (підбери під свій VRAM)
+# 24-32 шари — хороший баланс для більшості 8-12GB карт
+PARAMETER num_gpu 28
+
+# Додаткові параметри для стабільності
+PARAMETER num_thread 8
+PARAMETER temperature 0.7
+PARAMETER top_p 0.9

@@ -14,6 +14,14 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  redis:
+    image: redis:7-alpine
+    container_name: ensemble-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+
   ollama:
     image: ollama/ollama:latest
     container_name: ensemble-ollama
@@ -38,14 +46,33 @@ services:
       - "${FASTAPI_PORT}:8000"
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
+      - REDIS_URL=redis://redis:6379/0
       - OLLAMA_HOST=http://ollama:11434
     env_file:
-      - .env                   
+      - .env
     depends_on:
       - postgres
+      - redis
       - ollama
     volumes:
       - ./backend:/app
+
+  celery-worker:
+    build: ./backend
+    container_name: ensemble-celery-worker
+    restart: always
+    working_dir: /app
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
+      - REDIS_URL=redis://redis:6379/0
+      - OLLAMA_HOST=http://ollama:11434
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+      - ollama
+    command: celery -A app.celery_app worker --loglevel=info --pool=solo
 
 volumes:
   postgres_data:
