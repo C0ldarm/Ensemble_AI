@@ -1,9 +1,9 @@
-import type { Metadata } from 'next';
-import './globals.css';
+import type { Metadata } from "next";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: 'Ensemble AI',
-  description: 'Multi-model ensemble AI system',
+  title: "Ensemble AI",
+  description: "Stage 3 MVP",
 };
 
 export default function RootLayout({
@@ -13,7 +13,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="uk">
-      <body>{children}</body>
+      <body className="bg-gray-950 text-gray-100 antialiased">
+        {children}
+      </body>
     </html>
   );
 }

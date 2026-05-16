@@ -1,243 +1,246 @@
 'use client';
 
-import { useState } from 'react';
-import { Send, Settings, Bot, Users } from 'lucide-react';
-
-interface Model {
-  id: string;
-  name: string;
-  enabled: boolean;
-}
-
-interface Settings {
-  mode: 'standard' | 'detailed' | 'custom';
-  arbiterPrompt: string;
-  models: Model[];
-}
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 export default function EnsembleAI() {
   const [query, setQuery] = useState('');
-  const [response, setResponse] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [showDetailed, setShowDetailed] = useState(false);
-  const [detailedLog, setDetailedLog] = useState<any>(null);
+  const [response, setResponse] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const [settings, setSettings] = useState<Settings>({
-    mode: 'standard',
-    arbiterPrompt: 'Ти є Advanced Arbiter. Проаналізуй відповіді worker-моделей і дай найкращу синтезовану відповідь.',
-    models: [
-      { id: 'qwen2.5:7b-instruct', name: 'Qwen2.5 7B', enabled: true },
-      { id: 'llama3.1:8b', name: 'Llama 3.1 8B', enabled: true },
-      { id: 'qwen2.5:14b-arbiter', name: 'Qwen2.5 14B Arbiter', enabled: true },
-    ]
-  });
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [selectedModels, setSelectedModels] = useState<string[]>([]);
+  const [mode, setMode] = useState<'standard' | 'detailed' | 'custom'>('standard');
+  const [arbiterPrompt, setArbiterPrompt] = useState(
+    'You are an Advanced Arbiter. Analyze all responses carefully and give the best final answer.'
+  );
+  const [arbiterModel, setArbiterModel] = useState('qwen2.5:14b-arbiter');
 
-  const [showSettings, setShowSettings] = useState(false);
+  useEffect(() => {
+    axios.get('http://localhost:8000/api/v1/models', { timeout: 10000 })
+      .then((res) => {
+        if (res.data.success) {
+          setAvailableModels(res.data.models);
+          setSelectedModels(res.data.models.slice(0, 3));
+          if (res.data.models.includes('qwen2.5:14b-arbiter')) {
+            setArbiterModel('qwen2.5:14b-arbiter');
+          }
+        }
+      });
+  }, []);
 
-  const handleSubmit = async () => {
-    if (!query.trim()) return;
+  const addModel = (model: string) => {
+    if (!selectedModels.includes(model)) setSelectedModels([...selectedModels, model]);
+  };
 
-    setIsLoading(true);
-    setResponse('');
-    setDetailedLog(null);
+  const removeModel = (model: string) => {
+    setSelectedModels(selectedModels.filter(m => m !== model));
+  };
+
+  const runEnsemble = async () => {
+    if (!query.trim() || selectedModels.length === 0) return;
+
+    setLoading(true);
+    setResponse(null);
+    setErrorMsg('');
 
     try {
-      const endpoint = settings.mode === 'detailed' 
-        ? '/api/v1/ensemble/detailed' 
-        : '/api/v1/ensemble';
+      const endpoint = mode !== 'standard' ? '/api/v1/ensemble/detailed' : '/api/v1/ensemble';
 
-      const res = await fetch('http://localhost:8000' + endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: query,
-          models: settings.models.filter(m => m.enabled).map(m => m.id),
-          arbiter_prompt: settings.arbiterPrompt
-        })
+      const payload: any = {
+        prompt: query,
+        models: selectedModels,
+      };
+
+      if (mode !== 'standard') {
+        payload.arbiter_prompt = arbiterPrompt;
+        payload.arbiter_model = arbiterModel;
+      }
+
+      const res = await axios.post(`http://localhost:8000${endpoint}`, payload, {
+        timeout: 180000,
       });
 
-      const data = await res.json();
-      
-      if (settings.mode === 'detailed') {
-        setDetailedLog(data);
-        setResponse(data.final_answer || data.answer || 'No response');
+      setResponse(res.data);
+    } catch (err: any) {
+      console.error(err);
+      if (err.code === 'ECONNABORTED') {
+        setErrorMsg('Таймаут: моделі працюють дуже довго. Спробуйте з меншою кількістю моделей.');
       } else {
-        setResponse(data.answer || 'No response');
+        setErrorMsg(err.response?.data?.detail || err.message || 'Network Error');
       }
-    } catch (error) {
-      setResponse('Помилка підключення до бекенду: ' + (error as Error).message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const toggleModel = (id: string) => {
-    setSettings(prev => ({
-      ...prev,
-      models: prev.models.map(m => 
-        m.id === id ? { ...m, enabled: !m.enabled } : m
-      )
-    }));
+  const saveResponseAsJson = () => {
+    if (!response) return;
+    const blob = new Blob([JSON.stringify(response, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `ensemble-response-${Date.now()}.json`;
+    a.click();
   };
 
-  const saveSettings = () => {
-    const json = JSON.stringify(settings, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'ensemble-settings.json';
-    a.click();
-    URL.revokeObjectURL(url);
+  const formatDetailed = (data: any) => {
+    const arbiter = data.arbiter || {};
+    const workers = data.workers || [];
+
+    return (
+      <div className="space-y-6">
+        <div className="border border-gray-700 bg-gray-900 rounded-2xl p-6">
+          <div className="uppercase text-xs text-gray-400 mb-2">
+            ФІНАЛЬНА ВІДПОВІДЬ АРБІТРА ({arbiter.model || '—'})
+          </div>
+          <p className="text-lg leading-relaxed text-white whitespace-pre-wrap">
+            {arbiter.final_answer || arbiter.final_response || "Немає відповіді"}
+          </p>
+        </div>
+
+        {workers.length > 0 && (
+          <div>
+            <div className="uppercase text-xs text-gray-400 mb-3">ВІДПОВІДІ МОДЕЛЕЙ</div>
+            <div className="space-y-4">
+              {workers.map((w: any, i: number) => (
+                <div key={i} className="border border-gray-700 bg-gray-900 rounded-2xl p-5">
+                  <div className="font-mono text-xs text-blue-400 mb-2">{w.model}</div>
+                  <p className="text-gray-200 whitespace-pre-wrap">{w.answer || w.response}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {arbiter.reasoning && (
+          <div className="border border-gray-700 bg-gray-900 rounded-2xl p-5">
+            <div className="uppercase text-xs text-gray-400 mb-2">ПОЯСНЕННЯ АРБІТРА</div>
+            <p className="text-sm text-gray-300 whitespace-pre-wrap">{arbiter.reasoning}</p>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
-    <div className="flex h-screen bg-gray-950 text-white">
+    <div className="flex h-screen bg-gray-950 text-gray-100 overflow-hidden">
       {/* Sidebar */}
-      <div className="w-80 border-r border-gray-800 flex flex-col">
-        <div className="p-4 border-b border-gray-800">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
-              <Bot className="w-5 h-5" />
+      <div className={`border-r border-gray-800 bg-gray-900 transition-all duration-300 ${sidebarOpen ? 'w-72' : 'w-12'} overflow-hidden`}>
+        {sidebarOpen ? (
+          <div className="p-4 h-full overflow-y-auto">
+            <div className="flex items-center justify-between mb-5">
+              <h1 className="text-2xl font-bold">Ensemble AI</h1>
+              <button onClick={() => setSidebarOpen(false)} className="text-gray-400 hover:text-white text-xl">←</button>
             </div>
-            <div>
-              <h1 className="font-semibold text-xl">Ensemble AI</h1>
-              <p className="text-xs text-gray-500">v0.3 MVP</p>
-            </div>
-          </div>
-        </div>
 
-        {/* Models Selection */}
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-medium flex items-center gap-2">
-              <Users className="w-4 h-4" /> Моделі
-            </h3>
-            <button 
-              onClick={() => setShowSettings(!showSettings)}
-              className="text-gray-400 hover:text-white"
-            >
-              <Settings className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="space-y-2">
-            {settings.models.map(model => (
-              <div key={model.id} className="flex items-center justify-between bg-gray-900 rounded-lg p-3">
-                <div>
-                  <div className="font-medium">{model.name}</div>
-                  <div className="text-xs text-gray-500">{model.id}</div>
-                </div>
-                <button
-                  onClick={() => toggleModel(model.id)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${model.enabled ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-800 text-gray-500'}`}
-                >
-                  {model.enabled ? 'ON' : 'OFF'}
-                </button>
+            <div className="mb-6">
+              <h3 className="text-xs uppercase text-gray-500 mb-2">МОДЕЛІ ({selectedModels.length})</h3>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {selectedModels.map((m) => (
+                  <div key={m} className="bg-gray-800 px-3 py-1 rounded-xl text-sm flex items-center">
+                    <span className="font-mono text-xs truncate max-w-[170px]">{m}</span>
+                    <button onClick={() => removeModel(m)} className="ml-2 text-gray-400 hover:text-red-400">×</button>
+                  </div>
+                ))}
               </div>
-            ))}
+              <select onChange={(e) => { if (e.target.value) { addModel(e.target.value); e.target.value = ''; }}} 
+                      className="w-full bg-gray-800 border border-gray-700 rounded-xl p-3 text-sm">
+                <option value="">+ Додати модель</option>
+                {availableModels.filter(m => !selectedModels.includes(m)).map(m => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="mb-6">
+              <h3 className="text-xs uppercase text-gray-500 mb-2">РЕЖИМ</h3>
+              <select value={mode} onChange={e => setMode(e.target.value as any)} className="w-full bg-gray-800 border border-gray-700 rounded-xl p-3 text-sm">
+                <option value="standard">Standard</option>
+                <option value="detailed">Detailed</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+
+            {(mode === 'detailed' || mode === 'custom') && (
+              <>
+                <div className="mb-6">
+                  <h3 className="text-xs uppercase text-gray-500 mb-2">МОДЕЛЬ АРБІТРА</h3>
+                  <select value={arbiterModel} onChange={e => setArbiterModel(e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded-xl p-3 text-sm">
+                    {availableModels.map(m => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                </div>
+
+                <div className="mb-6">
+                  <h3 className="text-xs uppercase text-gray-500 mb-2">ПРОМПТ АРБІТРА</h3>
+                  <textarea value={arbiterPrompt} onChange={e => setArbiterPrompt(e.target.value)} className="w-full h-32 bg-gray-900 border border-gray-700 rounded-2xl p-4 text-sm resize-y" />
+                </div>
+              </>
+            )}
           </div>
-        </div>
-
-        {/* Mode Selection */}
-        <div className="px-4">
-          <label className="text-sm text-gray-400 block mb-2">Режим роботи</label>
-          <select 
-            value={settings.mode}
-            onChange={(e) => setSettings(prev => ({...prev, mode: e.target.value as any}))}
-            className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-purple-500"
-          >
-            <option value="standard">Стандартний Ensemble</option>
-            <option value="detailed">Detailed + Reasoning</option>
-            <option value="custom">Кастомний (Arbiter)</option>
-          </select>
-        </div>
-
-        {/* Arbiter Prompt */}
-        {settings.mode !== 'standard' && (
-          <div className="px-4 mt-4">
-            <label className="text-sm text-gray-400 block mb-2">Промпт для Arbiter</label>
-            <textarea
-              value={settings.arbiterPrompt}
-              onChange={(e) => setSettings(prev => ({...prev, arbiterPrompt: e.target.value}))}
-              className="w-full h-32 bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm resize-y focus:outline-none focus:border-purple-500"
-              placeholder="Введіть кастомний промпт для арбітра..."
-            />
-            <button
-              onClick={saveSettings}
-              className="mt-2 w-full bg-gray-800 hover:bg-gray-700 text-sm py-2 rounded-lg transition-colors"
-            >
-              💾 Зберегти налаштування як JSON
-            </button>
+        ) : (
+          <div className="h-full flex items-center justify-center pt-8">
+            <button onClick={() => setSidebarOpen(true)} className="text-3xl text-gray-400 hover:text-white">→</button>
           </div>
         )}
       </div>
 
-      {/* Main Chat Area */}
+      {/* Main Area */}
       <div className="flex-1 flex flex-col">
-        <div className="h-14 border-b border-gray-800 flex items-center px-6 justify-between">
-          <div className="font-medium">Новий запит</div>
-          <div className="text-xs text-gray-500">Backend: http://localhost:8000</div>
+        <div className="p-5 border-b border-gray-800 bg-gray-900">
+          <h2 className="text-xl font-semibold">Запит</h2>
         </div>
 
-        <div className="flex-1 p-6 overflow-auto">
-          {!response && !isLoading && (
-            <div className="h-full flex items-center justify-center text-gray-500">
-              Введіть запит нижче та натисніть Send
-            </div>
-          )}
+        <div className="flex-1 p-5 overflow-y-auto">
+          <textarea
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Введіть ваш запит..."
+            className="w-full h-52 bg-gray-900 border border-gray-700 rounded-2xl p-5 text-base resize-y"
+          />
 
-          {isLoading && (
-            <div className="flex items-center justify-center h-full">
-              <div className="animate-pulse flex flex-col items-center">
-                <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                <div>Працюють worker-моделі + Arbiter...</div>
-              </div>
+          <button
+            onClick={runEnsemble}
+            disabled={loading || selectedModels.length === 0}
+            className="w-full mt-6 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 py-4 rounded-2xl text-lg font-medium transition-all flex items-center justify-center gap-3"
+          >
+            {loading ? (
+              <>
+                <span className="animate-spin h-5 w-5 border-2 border-white/30 border-t-white rounded-full" />
+                Обробка... (до 3 хв)
+              </>
+            ) : (
+              'Запустити Ensemble'
+            )}
+          </button>
+
+          {errorMsg && (
+            <div className="mt-4 p-4 bg-red-900/50 border border-red-700 rounded-2xl text-red-300">
+              {errorMsg}
             </div>
           )}
 
           {response && (
-            <div className="max-w-3xl mx-auto">
-              <div className="bg-gray-900 rounded-2xl p-6 mb-6">
-                <div className="font-medium mb-3 text-purple-400">Фінальна відповідь:</div>
-                <div className="whitespace-pre-wrap leading-relaxed text-lg">
-                  {response}
-                </div>
+            <div className="mt-10">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-semibold text-lg">Результат</h3>
+                <button onClick={saveResponseAsJson} className="text-sm bg-gray-700 hover:bg-gray-600 px-5 py-2 rounded-xl">
+                  Зберегти JSON
+                </button>
               </div>
 
-              {detailedLog && (
-                <div className="bg-gray-900/70 rounded-2xl p-5 text-sm">
-                  <div className="font-mono text-xs text-gray-500 mb-4">DETAILED LOG</div>
-                  <pre className="overflow-auto max-h-96 text-xs text-gray-400">
-                    {JSON.stringify(detailedLog, null, 2)}
-                  </pre>
-                </div>
-              )}
+              <div className="bg-gray-900 border border-gray-700 rounded-3xl p-6">
+                {mode === 'standard' ? (
+                  <p className="text-lg leading-relaxed whitespace-pre-wrap">
+                    {response.final_response || response.final_answer}
+                  </p>
+                ) : (
+                  formatDetailed(response)
+                )}
+              </div>
             </div>
           )}
-        </div>
-
-        {/* Input Area */}
-        <div className="p-4 border-t border-gray-800 bg-gray-950">
-          <div className="max-w-3xl mx-auto flex gap-3">
-            <textarea
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSubmit())}
-              placeholder="Напишіть ваш запит..."
-              className="flex-1 bg-gray-900 border border-gray-700 rounded-2xl px-6 py-4 text-lg resize-y min-h-[60px] focus:outline-none focus:border-purple-500"
-            />
-            <button
-              onClick={handleSubmit}
-              disabled={isLoading || !query.trim()}
-              className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-700 w-14 h-14 rounded-2xl flex items-center justify-center transition-all active:scale-95"
-            >
-              <Send className="w-6 h-6" />
-            </button>
-          </div>
-          <div className="text-center text-xs text-gray-600 mt-3">
-            Ensemble AI • Паралельна обробка кількома моделями
-          </div>
         </div>
       </div>
     </div>

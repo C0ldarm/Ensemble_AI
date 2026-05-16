@@ -1,0 +1,54 @@
+# ========================================
+# Root .gitignore for Ensemble AI
+# ========================================
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.py[cod]
+*$py.class
+*.so
+
+# Backend cache
+backend/app/**/__pycache__/
+backend/app/**/*.pyc
+
+# Frontend
+frontend/.next/
+frontend/out/
+frontend/node_modules/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Lock files in wrong places
+package-lock.json
+package.json
+node_modules/
+
+# Logs & temp
+*.log
+logs/
+dump.rdb
+*.tmp
+.cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Misc
+*.sqlite3
+*.db
