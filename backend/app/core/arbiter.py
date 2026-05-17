@@ -48,7 +48,7 @@ class AdvancedArbiter:
         # Якщо користувач не передав модель арбітра — використовуємо дефолтну
         model = arbiter_model or "qwen2.5:14b-arbiter"
 
-        async with httpx.AsyncClient(timeout=180.0) as client:
+        async with httpx.AsyncClient(timeout=300.0) as client:
             response = await client.post(
                 f"{OLLAMA_HOST}/api/generate",
                 json={
@@ -213,7 +213,7 @@ class AdvancedArbiter:
 ЯКІСТЬ АРГУМЕНТІВ: [детальний аналіз]
 ПОЯСНЕННЯ: [чому саме ця версія найкраща]"""
 
-        async with httpx.AsyncClient(timeout=180.0) as client:
+        async with httpx.AsyncClient(timeout=300.0) as client:
             response = await client.post(
                 f"{OLLAMA_HOST}/api/generate",
                 json={
@@ -338,7 +338,7 @@ class AdvancedArbiter:
         """Запрошуємо обґрунтування у конфліктних моделей"""
         follow_up_results = {}
         
-        async with httpx.AsyncClient(timeout=180.0) as client:
+        async with httpx.AsyncClient(timeout=300.0) as client:
             for conflict in conflicts:
                 model1 = conflict["model1"]
                 model2 = conflict["model2"]
@@ -405,7 +405,7 @@ class AdvancedArbiter:
 ФІНАЛЬНА ВІДПОВІДЬ: [синтезована відповідь]
 ПОЯСНЕННЯ: [коротко - як синтезував]"""
 
-        async with httpx.AsyncClient(timeout=180.0) as client:
+        async with httpx.AsyncClient(timeout=300.0) as client:
             response = await client.post(
                 f"{OLLAMA_HOST}/api/generate",
                 json={
@@ -476,7 +476,7 @@ class AdvancedArbiter:
 ФІНАЛЬНА ВІДПОВІДЬ: [вибрана або синтезована]
 ПОЯСНЕННЯ: [як був розв'язаний конфлікт]"""
 
-        async with httpx.AsyncClient(timeout=180.0) as client:
+        async with httpx.AsyncClient(timeout=300.0) as client:
             response = await client.post(
                 f"{OLLAMA_HOST}/api/generate",
                 json={

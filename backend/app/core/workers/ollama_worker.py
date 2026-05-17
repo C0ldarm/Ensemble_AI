@@ -9,7 +9,7 @@ class OllamaWorker(BaseWorker):
 
     async def generate(self, prompt: str, model: str = None) -> Dict[str, Any]:
         model_to_use = model or self.model_name
-        async with httpx.AsyncClient(timeout=120.0) as client:
+        async with httpx.AsyncClient(timeout=1200.0) as client:
             response = await client.post(
                 f"{OLLAMA_HOST}/api/generate",
                 json={

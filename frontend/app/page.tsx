@@ -28,7 +28,7 @@ export default function EnsembleAI() {
   const [allowFollowUp, setAllowFollowUp] = useState(false);
 
   useEffect(() => {
-    axios.get('http://localhost:8000/api/v1/models', { timeout: 10000 })
+    axios.get('http://localhost:8000/api/v1/models', { timeout: 0 })
       .then((res) => {
         if (res.data.success) {
           setAvailableModels(res.data.models);
@@ -104,7 +104,7 @@ export default function EnsembleAI() {
       }
 
       const res = await axios.post(`http://localhost:8000${endpoint}`, payload, {
-        timeout: 300000, // 5 хвилин
+        timeout: 0, // 5 хвилин
         signal: controller.signal,
       });
 

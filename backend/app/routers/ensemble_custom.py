@@ -61,7 +61,7 @@ async def run_custom_ensemble(request: CustomEnsembleRequest):
         # Worker tasks
         tasks = [generate_with_model.delay(request.prompt, model) for model in request.models]
         raw_responses = await asyncio.to_thread(
-            lambda: [task.get(timeout=300) for task in tasks]
+            lambda: [task.get(timeout=120000) for task in tasks]
         )
         
         logger.info(f"[CUSTOM ENSEMBLE] Отримано {len(raw_responses)} відповідей від моделей")
