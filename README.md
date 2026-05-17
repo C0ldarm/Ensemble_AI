@@ -67,6 +67,7 @@ npm run dev
 
 ## Структура проєкту
 
+```bash
 backend/app/
 ├── main.py                 # FastAPI app, CORS, роутери
 ├── config.py              # Конфігурація (моделі, промпти)
@@ -86,6 +87,7 @@ frontend/
 ├── app/page.tsx           # Головна сторінка UI
 ├── components/
 └── tailwind.config.ts     # Стилізація
+```
 
 ## Основні ендпоінти API
 
