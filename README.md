@@ -41,15 +41,6 @@ git clone https://github.com/C0ldarm/Ensemble_AI.git
 cd Ensemble_AI
 ```
 
-## Як запустити проєкт
-
-1. Клонування репозиторію
-
-```bash
-git clone https://github.com/C0ldarm/Ensemble_AI.git
-cd Ensemble_AI
-```
-
 далі скачування моделей
 
 2. Запуск через Docker Compose (рекомендований спосіб)
@@ -76,14 +67,25 @@ npm run dev
 
 ## Структура проєкту
 
-```bash
-Ensemble_AI/
-├── backend/              # FastAPI + Celery + Arbiter
-├── frontend/             # Next.js 15
-├── docker-compose.yml
-├── README.md
-└── Stage_*.md            # документація по етапах
-```
+backend/app/
+├── main.py                 # FastAPI app, CORS, роутери
+├── config.py              # Конфігурація (моделі, промпти)
+├── celery_app.py          # Celery воркер
+├── routers/
+│   ├── ensemble.py        # Базовий ensemble endpoint
+│   ├── ensemble_detailed.py # Детальна версія з reasoning
+│   └── test_ensemble.py   # Тестування
+└── core/
+    ├── arbiter.py         # AdvancedArbiter клас (синтезація)
+    └── workers/
+        ├── base_worker.py
+        ├── ollama_worker.py # Запити до Ollama
+        └── tasks.py        # Celery таски
+
+frontend/
+├── app/page.tsx           # Головна сторінка UI
+├── components/
+└── tailwind.config.ts     # Стилізація
 
 ## Основні ендпоінти API
 
